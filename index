@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>備品計算アプリ</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --sub:#6b7280;
+      --accent:#ff8a3d;
+      --accent2:#ffb37d;
+      --line:#e5e7eb;
+      --danger:#ef4444;
+      --shadow:0 8px 24px rgba(0,0,0,.08);
+      --radius:20px;
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;}
+    body{min-height:100vh;}
+    .app{max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:40px;}
+    .screen{display:none;padding:16px;}
+    .screen.active{display:block;}
+    .topbar{
+      position:sticky; top:0; z-index:10;
+      background:rgba(246,247,251,.92);
+      backdrop-filter:blur(8px);
+      padding:10px 0 14px;
+    }
+    h1{
+      margin:0 0 6px;
+      font-size:28px;
+      line-height:1.2;
+      font-weight:800;
+      letter-spacing:.02em;
+    }
+    .sub{
+      color:var(--sub);
+      font-size:14px;
+      margin:0;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      margin-top:14px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:16px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:var(--shadow);
+    }
+    .btn-main{background:var(--accent);color:#fff;}
+    .btn-sub{background:#fff;color:var(--text);}
+    .btn-danger{background:#fff0f0;color:var(--danger);}
+    .btn:active{transform:scale(.98);}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+      margin-top:16px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      position:relative;
+      border:1px solid rgba(0,0,0,.04);
+    }
+    .card button{
+      width:100%;
+      padding:0;
+      border:none;
+      background:none;
+      text-align:left;
+      cursor:pointer;
+    }
+    .thumb{
+      width:100%;
+      aspect-ratio:1/1;
+      display:block;
+      object-fit:cover;
+      background:#f1f1f1;
+    }
+    .card-body{
+      padding:12px;
+    }
+    .name{
+      font-size:18px;
+      font-weight:800;
+      margin:0 0 6px;
+      line-height:1.3;
+    }
+    .price{
+      font-size:14px;
+      color:var(--sub);
+      margin:0;
+    }
+    .qty-badge{
+      position:absolute;
+      top:10px;
+      right:10px;
+      min-width:34px;
+      height:34px;
+      padding:0 10px;
+      border-radius:999px;
+      background:var(--accent);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      font-weight:800;
+      box-shadow:var(--shadow);
+    }
+    .footer-summary{
+      position:sticky;
+      bottom:0;
+      z-index:20;
+      margin-top:16px;
+      padding-top:10px;
+      background:linear-gradient(to top,var(--bg) 70%,rgba(246,247,251,0));
+    }
+    .summary-pill{
+      background:#fff;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:14px 16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      font-weight:800;
+      font-size:17px;
+    }
+    .detail-wrap,.summary-wrap{
+      margin-top:12px;
+      background:#fff;
+      border-radius:24px;
+      padding:16px;
+      box-shadow:var(--shadow);
+    }
+    .back-link{
+      display:inline-block;
+      margin:6px 0 12px;
+      font-weight:700;
+      color:var(--text);
+      text-decoration:none;
+      font-size:16px;
+      cursor:pointer;
+    }
+    .detail-image{
+      width:100%;
+      aspect-ratio:1/1;
+      object-fit:cover;
+      border-radius:20px;
+      background:#f1f1f1;
+      display:block;
+    }
+    .detail-title{
+      font-size:28px;
+      font-weight:900;
+      margin:14px 0 8px;
+    }
+    .detail-price{
+      font-size:17px;
+      color:var(--sub);
+      margin-bottom:18px;
+    }
+    .qty-box{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      margin:18px 0 10px;
+    }
+    .qty-btn{
+      width:72px;
+      height:72px;
+      border-radius:20px;
+      border:none;
+      background:var(--accent);
+      color:#fff;
+      font-size:34px;
+      font-weight:900;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+    }
+    .qty-value{
+      min-width:120px;
+      text-align:center;
+      font-size:44px;
+      font-weight:900;
+      background:#fff7f2;
+      border:2px solid #ffd7bc;
+      border-radius:20px;
+      padding:12px 0;
+    }
+    .detail-note{
+      text-align:center;
+      color:var(--sub);
+      font-size:14px;
+      margin-top:8px;
+    }
+    .detail-actions{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:18px;
+    }
+    .total-box{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .total-card{
+      background:#fff7f2;
+      border:1px solid #ffd7bc;
+      border-radius:18px;
+      padding:16px 12px;
+      text-align:center;
+    }
+    .total-label{
+      color:var(--sub);
+      font-size:13px;
+      margin-bottom:8px;
+      font-weight:700;
+    }
+    .total-value{
+      font-size:28px;
+      font-weight:900;
+    }
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .row{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:12px;
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+      align-items:center;
+      background:#fff;
+    }
+    .row-name{
+      font-size:17px;
+      font-weight:800;
+      margin-bottom:4px;
+    }
+    .row-sub{
+      font-size:13px;
+      color:var(--sub);
+    }
+    .row-right{
+      text-align:right;
+      font-weight:800;
+      font-size:17px;
+      white-space:nowrap;
+    }
+    .empty{
+      text-align:center;
+      color:var(--sub);
+      background:#fff;
+      border-radius:18px;
+      padding:28px 16px;
+      box-shadow:var(--shadow);
+      font-size:16px;
+    }
+    .small{
+      font-size:12px;
+      color:var(--sub);
+      margin-top:14px;
+      line-height:1.6;
+    }
+    @media (max-width:390px){
+      .name{font-size:16px;}
+      .detail-title{font-size:24px;}
+      .qty-btn{width:64px;height:64px;}
+      .qty-value{min-width:100px;font-size:38px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- 一覧画面 -->
+    <section id="screen-list" class="screen active">
+      <div class="topbar">
+        <h1>備品計算アプリ</h1>
+        <p class="sub">写真を押して数量を入力してください</p>
+        <div class="actions">
+          <button class="btn btn-main" onclick="openSummary()">集計を見る</button>
+          <button class="btn btn-sub" onclick="resetAll()">リセット</button>
+        </div>
+      </div>
+
+      <div id="itemGrid" class="grid"></div>
+
+      <div class="footer-summary">
+        <div class="summary-pill">
+          <span id="pillCount">合計 0 点</span>
+          <span id="pillAmount">¥0</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 詳細画面 -->
+    <section id="screen-detail" class="screen">
+      <div class="topbar">
+        <span class="back-link" onclick="showScreen('screen-list')">← 一覧へ戻る</span>
+      </div>
+
+      <div class="detail-wrap">
+        <img id="detailImage" class="detail-image" src="" alt="">
+        <div id="detailName" class="detail-title"></div>
+        <div id="detailPrice" class="detail-price"></div>
+
+        <div class="qty-box">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <div id="qtyValue" class="qty-value">0</div>
+          <button class="qty-btn" onclick="changeQty(1)">＋</button>
+        </div>
+
+        <div class="detail-note">数量を決めたら下のボタンを押してください</div>
+
+        <div class="detail-actions">
+          <button class="btn btn-main" onclick="saveAndBack()">この数量で戻る</button>
+          <button class="btn btn-sub" onclick="saveAndSummary()">この数量で集計へ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 集計画面 -->
+    <section id="screen-summary" class="screen">
+      <div class="topbar">
+        <span class="back-link" onclick="showScreen('screen-list')">← 一覧へ戻る</span>
+      </div>
+
+      <div class="summary-wrap">
+        <div class="total-box">
+          <div class="total-card">
+            <div class="total-label">合計点数</div>
+            <div id="summaryCount" class="total-value">0</div>
+          </div>
+          <div class="total-card">
+            <div class="total-label">合計金額</div>
+            <div id="summaryAmount" class="total-value">¥0</div>
+          </div>
+        </div>
+
+        <div id="summaryList"></div>
+
+        <div class="actions" style="margin-top:16px;">
+          <button class="btn btn-main" onclick="showScreen('screen-list')">一覧へ戻る</button>
+          <button class="btn btn-danger" onclick="resetAll()">最初から</button>
+        </div>
+
+        <div class="small">
+          この画面をそのままスクリーンショットしてください。<br>
+          品名・単価・画像はコード内の <strong>ITEMS</strong> を書き換えれば変更できます。
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    // ここを書き換えれば、備品名・単価・画像を変更できます
+    // image に画像URLを入れると、その写真が出ます
+    // 空欄のままなら仮画像が表示されます
+    const ITEMS = [
+      { name: "スプーン", price: 100, image: "", qty: 0 },
+      { name: "フォーク", price: 100, image: "", qty: 0 },
+      { name: "ナイフ", price: 120, image: "", qty: 0 },
+      { name: "コップ", price: 150, image: "", qty: 0 },
+      { name: "おしぼり", price: 80, image: "", qty: 0 },
+      { name: "トレー", price: 300, image: "", qty: 0 },
+      { name: "皿", price: 250, image: "", qty: 0 },
+      { name: "メニュー表", price: 200, image: "", qty: 0 }
+    ];
+
+    let currentIndex = 0;
+    let currentQty = 0;
+
+    function createPlaceholder(label){
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stop-color="#ffd9bf"/>
+              <stop offset="100%" stop-color="#ffb37d"/>
+            </linearGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#g)"/>
+          <circle cx="300" cy="220" r="90" fill="rgba(255,255,255,.45)"/>
+          <rect x="140" y="350" width="320" height="70" rx="18" fill="rgba(255,255,255,.55)"/>
+          <text x="300" y="530" text-anchor="middle" font-size="42" font-family="Arial, sans-serif" fill="#7a3d13" font-weight="700">${label}</text>
+        </svg>
+      `;
+      return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+    }
+
+    function yen(num){
+      return "¥" + Number(num).toLocaleString("ja-JP");
+    }
+
+    function totalCount(){
+      return ITEMS.reduce((sum, item) => sum + item.qty, 0);
+    }
+
+    function totalAmount(){
+      return ITEMS.reduce((sum, item) => sum + item.qty * item.price, 0);
+    }
+
+    function updatePill(){
+      document.getElementById("pillCount").textContent = `合計 ${totalCount()} 点`;
+      document.getElementById("pillAmount").textContent = yen(totalAmount());
+    }
+
+    function renderGrid(){
+      const grid = document.getElementById("itemGrid");
+      grid.innerHTML = "";
+
+      ITEMS.forEach((item, index) => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const imgSrc = item.image && item.image.trim() !== "" ? item.image : createPlaceholder(item.name);
+
+        card.innerHTML = `
+          <button onclick="openDetail(${index})">
+            <img class="thumb" src="${imgSrc}" alt="${item.name}">
+            ${item.qty > 0 ? `<div class="qty-badge">${item.qty}</div>` : ""}
+            <div class="card-body">
+              <div class="name">${item.name}</div>
+              <p class="price">単価 ${yen(item.price)}</p>
+            </div>
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+
+      updatePill();
+    }
+
+    function showScreen(id){
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function openDetail(index){
+      currentIndex = index;
+      currentQty = ITEMS[index].qty;
+
+      const item = ITEMS[index];
+      const imgSrc = item.image && item.image.trim() !== "" ? item.image : createPlaceholder(item.name);
+
+      document.getElementById("detailImage").src = imgSrc;
+      document.getElementById("detailImage").alt = item.name;
+      document.getElementById("detailName").textContent = item.name;
+      document.getElementById("detailPrice").textContent = `単価 ${yen(item.price)}`;
+      document.getElementById("qtyValue").textContent = currentQty;
+
+      showScreen("screen-detail");
+    }
+
+    function changeQty(diff){
+      currentQty += diff;
+      if(currentQty < 0) currentQty = 0;
+      document.getElementById("qtyValue").textContent = currentQty;
+    }
+
+    function saveCurrentQty(){
+      ITEMS[currentIndex].qty = currentQty;
+      renderGrid();
+    }
+
+    function saveAndBack(){
+      saveCurrentQty();
+      showScreen("screen-list");
+    }
+
+    function saveAndSummary(){
+      saveCurrentQty();
+      openSummary();
+    }
+
+    function openSummary(){
+      renderSummary();
+      showScreen("screen-summary");
+    }
+
+    function renderSummary(){
+      const wrap = document.getElementById("summaryList");
+      const selected = ITEMS.filter(item => item.qty > 0);
+
+      document.getElementById("summaryCount").textContent = totalCount();
+      document.getElementById("summaryAmount").textContent = yen(totalAmount());
+
+      if(selected.length === 0){
+        wrap.innerHTML = `<div class="empty">まだ何も選ばれていません</div>`;
+        return;
+      }
+
+      const list = document.createElement("div");
+      list.className = "list";
+
+      selected.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <div>
+            <div class="row-name">${item.name}</div>
+            <div class="row-sub">${yen(item.price)} × ${item.qty} 点</div>
+          </div>
+          <div class="row-right">${yen(item.price * item.qty)}</div>
+        `;
+        list.appendChild(row);
+      });
+
+      wrap.innerHTML = "";
+      wrap.appendChild(list);
+    }
+
+    function resetAll(){
+      const ok = confirm("数量をすべて0に戻しますか？");
+      if(!ok) return;
+
+      ITEMS.forEach(item => item.qty = 0);
+      renderGrid();
+      renderSummary();
+      showScreen("screen-list");
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>
