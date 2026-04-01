@@ -1,613 +1,395 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>備品計算アプリ</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <title>第68回 日本拳法孝徳会選手権大会</title>
   <style>
-    :root{
-      --bg:#f6f7fb;
+    :root {
+      --bg:#f7f4ef;
       --card:#ffffff;
-      --text:#1f2937;
-      --sub:#6b7280;
-      --accent:#ff8a3d;
-      --accent2:#ffb37d;
-      --line:#e5e7eb;
-      --danger:#ef4444;
-      --shadow:0 8px 24px rgba(0,0,0,.08);
+      --text:#201915;
+      --sub:#6e6155;
+      --line:#e8ddd0;
+      --accent:#d87a22;
+      --accent-dark:#b75f0f;
+      --soft:#fff4ea;
+      --shadow:0 12px 32px rgba(65,43,22,.08);
       --radius:20px;
     }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;}
-    body{min-height:100vh;}
-    .app{max-width:520px;margin:0 auto;min-height:100vh;padding-bottom:40px;}
-    .screen{display:none;padding:16px;}
-    .screen.active{display:block;}
-    .topbar{
-      position:sticky; top:0; z-index:10;
-      background:rgba(246,247,251,.92);
-      backdrop-filter:blur(8px);
-      padding:10px 0 14px;
-    }
-    h1{
-      margin:0 0 6px;
-      font-size:28px;
-      line-height:1.2;
-      font-weight:800;
-      letter-spacing:.02em;
-    }
-    .sub{
-      color:var(--sub);
-      font-size:14px;
-      margin:0;
-    }
-    .actions{
-      display:flex;
-      gap:10px;
-      margin-top:14px;
-      flex-wrap:wrap;
-    }
-    .btn{
-      appearance:none;
-      border:none;
-      border-radius:16px;
-      padding:14px 16px;
-      font-size:16px;
-      font-weight:700;
-      cursor:pointer;
-      box-shadow:var(--shadow);
-    }
-    .btn-main{background:var(--accent);color:#fff;}
-    .btn-sub{background:#fff;color:var(--text);}
-    .btn-danger{background:#fff0f0;color:var(--danger);}
-    .btn:active{transform:scale(.98);}
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:14px;
-      margin-top:16px;
-    }
-    .card{
-      background:var(--card);
-      border-radius:var(--radius);
-      overflow:hidden;
-      box-shadow:var(--shadow);
-      position:relative;
-      border:1px solid rgba(0,0,0,.04);
-    }
-    .card button{
-      width:100%;
-      padding:0;
-      border:none;
-      background:none;
-      text-align:left;
-      cursor:pointer;
-    }
-    .thumb{
-      width:100%;
-      aspect-ratio:1/1;
-      display:block;
-      object-fit:cover;
-      background:#f1f1f1;
-    }
-    .card-body{
-      padding:12px;
-    }
-    .name{
-      font-size:18px;
-      font-weight:800;
-      margin:0 0 6px;
-      line-height:1.3;
-    }
-    .price{
-      font-size:14px;
-      color:var(--sub);
-      margin:0;
-    }
-    .qty-badge{
-      position:absolute;
-      top:10px;
-      right:10px;
-      min-width:34px;
-      height:34px;
-      padding:0 10px;
-      border-radius:999px;
-      background:var(--accent);
-      color:#fff;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:16px;
-      font-weight:800;
-      box-shadow:var(--shadow);
-    }
-    .footer-summary{
-      position:sticky;
-      bottom:0;
-      z-index:20;
-      margin-top:16px;
-      padding-top:10px;
-      background:linear-gradient(to top,var(--bg) 70%,rgba(246,247,251,0));
-    }
-    .summary-pill{
-      background:#fff;
-      border-radius:18px;
-      box-shadow:var(--shadow);
-      padding:14px 16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      font-weight:800;
-      font-size:17px;
-    }
-    .detail-wrap,.summary-wrap{
-      margin-top:12px;
-      background:#fff;
-      border-radius:24px;
-      padding:16px;
-      box-shadow:var(--shadow);
-    }
-    .back-link{
-      display:inline-block;
-      margin:6px 0 12px;
-      font-weight:700;
-      color:var(--text);
-      text-decoration:none;
-      font-size:16px;
-      cursor:pointer;
-    }
-    .detail-image{
-      width:100%;
-      aspect-ratio:1/1;
-      object-fit:cover;
-      border-radius:20px;
-      background:#f1f1f1;
-      display:block;
-    }
-    .detail-title{
-      font-size:28px;
-      font-weight:900;
-      margin:14px 0 8px;
-    }
-    .detail-price{
-      font-size:17px;
-      color:var(--sub);
-      margin-bottom:18px;
-    }
-    .qty-box{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:14px;
-      margin:18px 0 10px;
-    }
-    .qty-btn{
-      width:72px;
-      height:72px;
-      border-radius:20px;
-      border:none;
-      background:var(--accent);
-      color:#fff;
-      font-size:34px;
-      font-weight:900;
-      box-shadow:var(--shadow);
-      cursor:pointer;
-    }
-    .qty-value{
-      min-width:120px;
-      text-align:center;
-      font-size:44px;
-      font-weight:900;
-      background:#fff7f2;
-      border:2px solid #ffd7bc;
-      border-radius:20px;
-      padding:12px 0;
-    }
-    .detail-note{
-      text-align:center;
-      color:var(--sub);
-      font-size:14px;
-      margin-top:8px;
-    }
-    .detail-actions{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      margin-top:18px;
-    }
-    .total-box{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-      margin-bottom:16px;
-    }
-    .total-card{
-      background:#fff7f2;
-      border:1px solid #ffd7bc;
-      border-radius:18px;
-      padding:16px 12px;
-      text-align:center;
-    }
-    .total-label{
-      color:var(--sub);
-      font-size:13px;
-      margin-bottom:8px;
-      font-weight:700;
-    }
-    .total-value{
-      font-size:28px;
-      font-weight:900;
-    }
-    .list{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .row{
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-      display:grid;
-      grid-template-columns:1fr auto;
-      gap:10px;
-      align-items:center;
-      background:#fff;
-    }
-    .row-name{
-      font-size:17px;
-      font-weight:800;
-      margin-bottom:4px;
-    }
-    .row-sub{
-      font-size:13px;
-      color:var(--sub);
-    }
-    .row-right{
-      text-align:right;
-      font-weight:800;
-      font-size:17px;
-      white-space:nowrap;
-    }
-    .empty{
-      text-align:center;
-      color:var(--sub);
-      background:#fff;
-      border-radius:18px;
-      padding:28px 16px;
-      box-shadow:var(--shadow);
-      font-size:16px;
-    }
-    .small{
-      font-size:12px;
-      color:var(--sub);
-      margin-top:14px;
-      line-height:1.6;
-    }
-    @media (max-width:390px){
-      .name{font-size:16px;}
-      .detail-title{font-size:24px;}
-      .qty-btn{width:64px;height:64px;}
-      .qty-value{min-width:100px;font-size:38px;}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif}
+    body{min-height:100dvh}
+    a{text-decoration:none;color:inherit}
+    button,input{font:inherit}
+    .app{max-width:780px;margin:0 auto;min-height:100dvh;padding:18px 16px 32px}
+    .screen{display:none;min-height:calc(100dvh - 50px);animation:fade .18s ease}
+    .screen.active{display:block}
+    @keyframes fade{from{opacity:.4;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .start-wrap{min-height:calc(100dvh - 50px);display:flex;align-items:center;justify-content:center}
+    .card,.panel{background:var(--card);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow)}
+    .card{padding:34px 24px;text-align:center}
+    .eyebrow{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.08em}
+    .title-lg{margin:12px 0 0;font-size:clamp(34px,9vw,56px);line-height:1.12;font-weight:900}
+    .title-md{margin:10px 0 0;font-size:clamp(22px,5.9vw,34px);line-height:1.24;font-weight:800}
+    .date{margin:18px 0 0;font-size:clamp(22px,5.5vw,30px);font-weight:700}
+    .hero-note{margin:14px auto 0;max-width:24em;color:var(--sub);font-size:14px;line-height:1.7}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:14px 22px;border-radius:18px;border:none;cursor:pointer;background:var(--accent);color:#fff;font-weight:900;letter-spacing:.06em;box-shadow:0 8px 18px rgba(216,122,34,.28)}
+    .btn.secondary{background:#fff;color:var(--accent);border:2px solid var(--accent);box-shadow:none}
+    .btn.ghost{background:#fff;color:var(--text);border:1px solid var(--line);box-shadow:none}
+    .btn.block{display:flex;width:100%}
+    .btn.large{min-height:66px;font-size:22px}
+    .topbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .brand{font-size:14px;font-weight:800;color:var(--accent);letter-spacing:.08em}
+    .icon-btn{min-width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:#fff;color:var(--text);display:inline-flex;align-items:center;justify-content:center;font-size:18px;font-weight:700}
+    .page-title{margin:0;font-size:28px;line-height:1.2;font-weight:900}
+    .page-sub{margin:6px 0 0;color:var(--sub);font-size:14px;line-height:1.6}
+    .panel{padding:18px}
+    .home-hero{padding:22px 18px}
+    .chip-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    .chip{padding:8px 12px;border-radius:999px;background:var(--soft);color:var(--accent-dark);font-size:13px;font-weight:800;border:1px solid #f2d4b5}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+    .nav-card{padding:18px;border-radius:22px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between;min-height:132px;cursor:pointer}
+    .nav-card .emoji{font-size:28px;line-height:1}
+    .nav-card .name{margin-top:18px;font-size:20px;font-weight:900;line-height:1.25}
+    .nav-card .desc{margin-top:6px;font-size:13px;line-height:1.6;color:var(--sub)}
+    .search-input{width:100%;min-height:54px;border-radius:16px;border:1px solid var(--line);background:#fff;padding:0 16px;font-size:16px;color:var(--text);outline:none}
+    .search-input:focus{border-color:#f2b176;box-shadow:0 0 0 3px rgba(216,122,34,.12)}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+    .small-note{margin:10px 0 0;color:var(--sub);font-size:13px;line-height:1.6}
+    .list{display:flex;flex-direction:column;gap:12px;margin-top:14px}
+    .item{padding:16px;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .player-open{display:block;width:100%;padding:0;border:none;background:transparent;text-align:left;cursor:pointer;color:inherit}
+    .player-open:focus-visible,.inline-player:focus-visible,.icon-btn:focus-visible,.btn:focus-visible,.fav-btn:focus-visible{outline:3px solid rgba(216,122,34,.28);outline-offset:3px}
+    .player-open .item-title{color:var(--text)}
+    .player-open .meta{margin-top:8px}
+    .inline-player{display:inline;padding:0;border:none;background:transparent;color:var(--accent-dark);font-weight:800;text-decoration:underline;cursor:pointer}
+    .group-line{margin-top:8px;color:var(--sub);font-size:14px;line-height:1.9}
+    .player-summary{margin-top:10px;color:var(--sub);font-size:14px;line-height:1.7}
+    .item-title{margin:0;font-size:18px;line-height:1.35;font-weight:900}
+    .meta{margin-top:8px;font-size:14px;line-height:1.75;color:var(--sub)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .fav-btn{min-height:46px;padding:10px 16px;border-radius:14px;border:none;background:var(--soft);color:var(--accent-dark);font-weight:900}
+    .fav-btn.saved{background:var(--accent);color:#fff}
+    .empty{padding:28px 18px;text-align:center;color:var(--sub);font-size:14px;line-height:1.8}
+    .court-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+    .court-card{padding:18px;border-radius:22px;background:#fff;border:1px solid var(--line);box-shadow:var(--shadow)}
+    .court-name{font-size:28px;font-weight:900}
+    .section-label{margin-top:10px;font-size:12px;font-weight:900;letter-spacing:.08em;color:var(--accent)}
+    ul.clean{margin:8px 0 0 1.2em;padding:0;color:var(--sub);line-height:1.8}
+    .notice{background:#fff;border:1px dashed #e5b17c;border-radius:18px;padding:16px;color:var(--sub);line-height:1.8;font-size:14px}
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .tag{padding:6px 10px;border-radius:999px;background:#f5f5f5;font-size:12px;color:#4a4038}
+    .warn{background:#fff7cf;color:#7d5c00}
+    .footer-space{height:24px}
+    @media (max-width:640px){
+      .grid,.court-grid{grid-template-columns:1fr}
+      .title-lg{font-size:clamp(30px,10vw,46px)}
+      .title-md{font-size:clamp(20px,6.2vw,30px)}
+      .date{font-size:clamp(20px,6vw,28px)}
+      .nav-card{min-height:118px}
     }
   </style>
 </head>
 <body>
-  <div class="app">
-
-    <section id="screen-list" class="screen active">
-      <div class="topbar">
-        <h1>備品計算アプリ</h1>
-        <p class="sub">写真を押して数量を入力してください</p>
-        <div class="actions">
-          <button class="btn btn-main" onclick="openSummary()">集計を見る</button>
-          <button class="btn btn-sub" onclick="resetAll()">リセット</button>
+<div class="app">
+  <section id="start" class="screen active">
+    <div class="start-wrap">
+      <div class="card" style="width:100%;">
+        <div class="eyebrow">KOUTOKUKAI CHAMPIONSHIP</div>
+        <h1 class="title-lg">第68回</h1>
+        <div class="title-md">日本拳法孝徳会選手権大会</div>
+        <div class="date">令和8年11月1日</div>
+        <p class="hero-note">今年のパンフPDFをもとにした下書きデータ版です。ENTERでホームへ進みます。</p>
+        <div style="margin-top:28px;">
+          <a class="btn large" href="#home" data-screen-link="home">ENTER</a>
         </div>
       </div>
+    </div>
+  </section>
 
-      <div id="itemGrid" class="grid"></div>
-
-      <div class="footer-summary">
-        <div class="summary-pill">
-          <span id="pillCount">合計 0 点</span>
-          <span id="pillAmount">¥0</span>
-        </div>
+  <section id="home" class="screen">
+    <div class="topbar">
+      <div>
+        <div class="brand">第68回 日本拳法孝徳会選手権大会</div>
+        <h2 class="page-title">ホーム</h2>
+        <p class="page-sub">今年のPDF下書きデータを検索・コート別表示・お気に入り保存できる確認版です。</p>
       </div>
-    </section>
+      <a href="#start" data-screen-link="start" class="icon-btn">⌂</a>
+    </div>
+    <div class="grid">
+      <a class="nav-card" href="#search" data-screen-link="search"><div class="emoji">🔎</div><div><div class="name">選手検索</div><div class="desc">名前・部門・コートで探す</div></div></a>
+      <a class="nav-card" href="#favorites" data-screen-link="favorites"><div class="emoji">⭐️</div><div><div class="name">お気に入り</div><div class="desc">自分の家族や道場生を保存</div></div></a>
+      <a class="nav-card" href="#courts" data-screen-link="courts"><div class="emoji">🥋</div><div><div class="name">コート別</div><div class="desc">A〜Dコートの午前・午後を確認</div></div></a>
+      <a class="nav-card" href="#divisions" data-screen-link="divisions"><div class="emoji">📋</div><div><div class="name">部門一覧</div><div class="desc">抽出できた部門を一覧表示</div></div></a>
+    </div>
+  </section>
 
-    <section id="screen-detail" class="screen">
-      <div class="topbar">
-        <span class="back-link" onclick="showScreen('screen-list')">← 一覧へ戻る</span>
+  <section id="search" class="screen">
+    <div class="topbar">
+      <div><div class="brand">SEARCH</div><h2 class="page-title">選手検索</h2><p class="page-sub">選手名・部門名・コート名で検索できます。</p></div>
+      <a href="#home" data-screen-link="home" class="icon-btn">←</a>
+    </div>
+    <div class="panel">
+      <input id="searchInput" class="search-input" type="search" placeholder="例：孝徳会 / 西宮隠心会 / 松山市日本拳法連盟 / 神戸大学A.B.C" autocomplete="off">
+      <div class="toolbar">
+        <button class="btn secondary" type="button" data-quick="孝徳会">孝徳会</button>
+        <button class="btn secondary" type="button" data-quick="西宮隠心会">西宮隠心会</button>
+        <button class="btn secondary" type="button" data-quick="松山市日本拳法連盟">松山市日本拳法連盟</button>
+        <button class="btn secondary" type="button" data-quick="神戸大学A.B.C">神戸大学A.B.C</button>
+        <button class="btn ghost" type="button" id="clearSearch">クリア</button>
       </div>
+      <p class="small-note">※ 今年のスキャンPDFからの下書き抽出です。名前に一部確認待ちがあります。</p>
+    </div>
+    <div id="results" class="list"></div>
+  </section>
 
-      <div class="detail-wrap">
-        <img id="detailImage" class="detail-image" src="" alt="">
-        <div id="detailName" class="detail-title"></div>
-        <div id="detailPrice" class="detail-price"></div>
+  <section id="favorites" class="screen">
+    <div class="topbar">
+      <div><div class="brand">FAVORITES</div><h2 class="page-title">お気に入り</h2><p class="page-sub">家族・道場生を登録してまとめて見られます。</p></div>
+      <a href="#home" data-screen-link="home" class="icon-btn">←</a>
+    </div>
+    <div class="notice">お気に入りはこの端末のブラウザに保存されます。公開URLをSafariで開いたままでも残ります。</div>
+    <div id="favoriteList" class="list"></div>
+  </section>
 
-        <div class="qty-box">
-          <button class="qty-btn" onclick="changeQty(-1)">−</button>
-          <div id="qtyValue" class="qty-value">0</div>
-          <button class="qty-btn" onclick="changeQty(1)">＋</button>
-        </div>
+  <section id="player" class="screen">
+    <div class="topbar">
+      <div><div class="brand">PLAYER</div><h2 id="playerTitle" class="page-title">選手詳細</h2><p id="playerSub" class="page-sub">この選手がエントリーしている部門を表示します。</p></div>
+      <button id="playerBackBtn" type="button" class="icon-btn">←</button>
+    </div>
+    <div id="playerEntries" class="list"></div>
+  </section>
 
-        <div class="detail-note">数量を決めたら下のボタンを押してください</div>
+  <section id="courts" class="screen">
+    <div class="topbar">
+      <div><div class="brand">COURTS</div><h2 class="page-title">コート別</h2><p class="page-sub">今年のパンフPDFのコート割ページをもとに整理しています。</p></div>
+      <a href="#home" data-screen-link="home" class="icon-btn">←</a>
+    </div>
+    <div id="courtGrid" class="court-grid"></div>
+  </section>
 
-        <div class="detail-actions">
-          <button class="btn btn-main" onclick="saveAndBack()">この数量で戻る</button>
-          <button class="btn btn-sub" onclick="saveAndSummary()">この数量で集計へ</button>
-        </div>
+  <section id="divisions" class="screen">
+    <div class="topbar">
+      <div><div class="brand">DIVISIONS</div><h2 class="page-title">部門一覧</h2><p class="page-sub">抽出できた部門と組数の一覧です。</p></div>
+      <a href="#home" data-screen-link="home" class="icon-btn">←</a>
+    </div>
+    <div id="divisionList" class="list"></div>
+  </section>
+  <div class="footer-space"></div>
+</div>
+
+<script>
+const DATA = {"courtMap": {"A": {"morning": ["小学1・2年女子", "小学3年女子", "中学1・2年男子", "中学1・2年女子"], "afternoon": ["成年団体 A-1", "成年団体 A-2", "成年団体 A-3", "成年団体 A-4", "決勝戦・3位決定戦"]}, "B": {"morning": ["小学3年男子", "小学5年男子", "小学6年男子"], "afternoon": ["成年団体 B-1", "成年団体 B-2", "成年団体 B-3"]}, "C": {"morning": ["幼年男女", "小学1年男子", "小学2年男子"], "afternoon": ["成年団体 C-1", "成年団体 C-2"]}, "D": {"morning": ["小学4年男子", "小学4年女子", "小学5・6年女子"], "afternoon": ["成年団体 D-1", "成年団体 D-2"]}}, "players": [{"id": "幼年男女-1-斎藤 優人", "player": "斎藤 優人", "division": "幼年男女", "group": 1, "court": "C", "needs_review": false}, {"id": "幼年男女-1-辻 朔太郎", "player": "辻 朔太郎", "division": "幼年男女", "group": 1, "court": "C", "needs_review": false}, {"id": "幼年男女-1-徳野 瑞季", "player": "徳野 瑞季", "division": "幼年男女", "group": 1, "court": "C", "needs_review": false}, {"id": "幼年男女-2-木村 喜道", "player": "木村 喜道", "division": "幼年男女", "group": 2, "court": "C", "needs_review": false}, {"id": "幼年男女-2-藤本 勝", "player": "藤本 勝", "division": "幼年男女", "group": 2, "court": "C", "needs_review": false}, {"id": "幼年男女-2-安田 雛", "player": "安田 雛", "division": "幼年男女", "group": 2, "court": "C", "needs_review": false}, {"id": "幼年男女-2-小谷 朔空", "player": "小谷 朔空", "division": "幼年男女", "group": 2, "court": "C", "needs_review": false}, {"id": "小学1年男子-1-森岡 龍", "player": "森岡 龍", "division": "小学1年男子", "group": 1, "court": "C", "needs_review": true}, {"id": "小学1年男子-1-鳶本 凛太朗", "player": "鳶本 凛太朗", "division": "小学1年男子", "group": 1, "court": "C", "needs_review": true}, {"id": "小学1年男子-1-山田 欄誠", "player": "山田 欄誠", "division": "小学1年男子", "group": 1, "court": "C", "needs_review": true}, {"id": "小学1年男子-2-西村 涼正", "player": "西村 涼正", "division": "小学1年男子", "group": 2, "court": "C", "needs_review": true}, {"id": "小学1年男子-2-看舎 竜太郎", "player": "看舎 竜太郎", "division": "小学1年男子", "group": 2, "court": "C", "needs_review": true}, {"id": "小学1年男子-2-松井 桃李", "player": "松井 桃李", "division": "小学1年男子", "group": 2, "court": "C", "needs_review": true}, {"id": "小学1年男子-2-本田 律月", "player": "本田 律月", "division": "小学1年男子", "group": 2, "court": "C", "needs_review": true}, {"id": "小学1年男子-3-日高 晴稀", "player": "日高 晴稀", "division": "小学1年男子", "group": 3, "court": "C", "needs_review": false}, {"id": "小学1年男子-3-田頭 健太", "player": "田頭 健太", "division": "小学1年男子", "group": 3, "court": "C", "needs_review": false}, {"id": "小学1年男子-3-森本 伊織", "player": "森本 伊織", "division": "小学1年男子", "group": 3, "court": "C", "needs_review": false}, {"id": "小学1年男子-3-岡林 航大", "player": "岡林 航大", "division": "小学1年男子", "group": 3, "court": "C", "needs_review": false}, {"id": "小学2年男子-1-木村 喜一", "player": "木村 喜一", "division": "小学2年男子", "group": 1, "court": "C", "needs_review": true}, {"id": "小学2年男子-1-苫山 綾牙", "player": "苫山 綾牙", "division": "小学2年男子", "group": 1, "court": "C", "needs_review": true}, {"id": "小学2年男子-1-岡林 大和", "player": "岡林 大和", "division": "小学2年男子", "group": 1, "court": "C", "needs_review": true}, {"id": "小学2年男子-2-松田 陽太", "player": "松田 陽太", "division": "小学2年男子", "group": 2, "court": "C", "needs_review": false}, {"id": "小学2年男子-2-藤井 幹", "player": "藤井 幹", "division": "小学2年男子", "group": 2, "court": "C", "needs_review": false}, {"id": "小学2年男子-2-池田 恵大", "player": "池田 恵大", "division": "小学2年男子", "group": 2, "court": "C", "needs_review": false}, {"id": "小学2年男子-2-森本 龍", "player": "森本 龍", "division": "小学2年男子", "group": 2, "court": "C", "needs_review": false}, {"id": "小学1・2年女子-1-NGUENNAT AN", "player": "NGUENNAT AN", "division": "小学1・2年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "小学1・2年女子-1-林 菜一花", "player": "林 菜一花", "division": "小学1・2年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "小学1・2年女子-1-通阪 夏央", "player": "通阪 夏央", "division": "小学1・2年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "小学1・2年女子-2-林 莉子", "player": "林 莉子", "division": "小学1・2年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "小学1・2年女子-2-石原 ななみ", "player": "石原 ななみ", "division": "小学1・2年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "小学1・2年女子-2-広瀬 希羽", "player": "広瀬 希羽", "division": "小学1・2年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "小学1・2年女子-2-矢吹 玲依", "player": "矢吹 玲依", "division": "小学1・2年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "小学3年男子-1-黒瀬 英汰", "player": "黒瀬 英汰", "division": "小学3年男子", "group": 1, "court": "B", "needs_review": false}, {"id": "小学3年男子-1-濱口 亜門", "player": "濱口 亜門", "division": "小学3年男子", "group": 1, "court": "B", "needs_review": false}, {"id": "小学3年男子-1-藤岡 叶人", "player": "藤岡 叶人", "division": "小学3年男子", "group": 1, "court": "B", "needs_review": false}, {"id": "小学3年男子-2-徳野 煌季", "player": "徳野 煌季", "division": "小学3年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学3年男子-2-宮家 一樹", "player": "宮家 一樹", "division": "小学3年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学3年男子-2-細川 陽斗", "player": "細川 陽斗", "division": "小学3年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学3年男子-3-橋本 大河", "player": "橋本 大河", "division": "小学3年男子", "group": 3, "court": "B", "needs_review": false}, {"id": "小学3年男子-3-森 大翔", "player": "森 大翔", "division": "小学3年男子", "group": 3, "court": "B", "needs_review": false}, {"id": "小学3年男子-3-山下 慧", "player": "山下 慧", "division": "小学3年男子", "group": 3, "court": "B", "needs_review": false}, {"id": "小学3年女子-1-守安 梨桜", "player": "守安 梨桜", "division": "小学3年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "小学3年女子-1-斎藤 葵", "player": "斎藤 葵", "division": "小学3年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "小学3年女子-1-増永 愛", "player": "増永 愛", "division": "小学3年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "小学3年女子-2-水越 杏", "player": "水越 杏", "division": "小学3年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "小学3年女子-2-HO TI THAN VAN", "player": "HO TI THAN VAN", "division": "小学3年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "小学3年女子-2-五十嵐 紗那", "player": "五十嵐 紗那", "division": "小学3年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "小学4年男子-1-高田 陽生", "player": "高田 陽生", "division": "小学4年男子", "group": 1, "court": "D", "needs_review": true}, {"id": "小学4年男子-1-広瀬 多可希", "player": "広瀬 多可希", "division": "小学4年男子", "group": 1, "court": "D", "needs_review": true}, {"id": "小学4年男子-1-豊田 恵大", "player": "豊田 恵大", "division": "小学4年男子", "group": 1, "court": "D", "needs_review": true}, {"id": "小学4年男子-2-坂本 渉磨", "player": "坂本 渉磨", "division": "小学4年男子", "group": 2, "court": "D", "needs_review": false}, {"id": "小学4年男子-2-石黒 敦士", "player": "石黒 敦士", "division": "小学4年男子", "group": 2, "court": "D", "needs_review": false}, {"id": "小学4年男子-2-三浦 太貴", "player": "三浦 太貴", "division": "小学4年男子", "group": 2, "court": "D", "needs_review": false}, {"id": "小学4年男子-3-水嶋 怜", "player": "水嶋 怜", "division": "小学4年男子", "group": 3, "court": "D", "needs_review": false}, {"id": "小学4年男子-3-川谷 朔良", "player": "川谷 朔良", "division": "小学4年男子", "group": 3, "court": "D", "needs_review": false}, {"id": "小学4年男子-3-森下 敬心", "player": "森下 敬心", "division": "小学4年男子", "group": 3, "court": "D", "needs_review": false}, {"id": "小学4年男子-4-大元 叶翔", "player": "大元 叶翔", "division": "小学4年男子", "group": 4, "court": "D", "needs_review": false}, {"id": "小学4年男子-4-辻 凌斗", "player": "辻 凌斗", "division": "小学4年男子", "group": 4, "court": "D", "needs_review": false}, {"id": "小学4年男子-4-高津 龍生", "player": "高津 龍生", "division": "小学4年男子", "group": 4, "court": "D", "needs_review": false}, {"id": "小学4年男子-4-池田 真太郎", "player": "池田 真太郎", "division": "小学4年男子", "group": 4, "court": "D", "needs_review": false}, {"id": "小学4年女子-1-後山 佳帆南", "player": "後山 佳帆南", "division": "小学4年女子", "group": 1, "court": "D", "needs_review": false}, {"id": "小学4年女子-1-笠井 詩葉", "player": "笠井 詩葉", "division": "小学4年女子", "group": 1, "court": "D", "needs_review": false}, {"id": "小学4年女子-1-森本 妃那", "player": "森本 妃那", "division": "小学4年女子", "group": 1, "court": "D", "needs_review": false}, {"id": "小学4年女子-2-岡林 亜朱", "player": "岡林 亜朱", "division": "小学4年女子", "group": 2, "court": "D", "needs_review": true}, {"id": "小学4年女子-2-矢吹 莉乃", "player": "矢吹 莉乃", "division": "小学4年女子", "group": 2, "court": "D", "needs_review": true}, {"id": "小学4年女子-2-通阪 桜央", "player": "通阪 桜央", "division": "小学4年女子", "group": 2, "court": "D", "needs_review": true}, {"id": "小学5年男子-1-和気 皇雅", "player": "和気 皇雅", "division": "小学5年男子", "group": 1, "court": "B", "needs_review": false}, {"id": "小学5年男子-1-岡 敬良", "player": "岡 敬良", "division": "小学5年男子", "group": 1, "court": "B", "needs_review": false}, {"id": "小学5年男子-1-折口 陽悠", "player": "折口 陽悠", "division": "小学5年男子", "group": 1, "court": "B", "needs_review": false}, {"id": "小学5年男子-2-笹井 翔哉", "player": "笹井 翔哉", "division": "小学5年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学5年男子-2-辻本 航太朗", "player": "辻本 航太朗", "division": "小学5年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学5年男子-2-明石 大和", "player": "明石 大和", "division": "小学5年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学5年男子-3-後山 汰輝", "player": "後山 汰輝", "division": "小学5年男子", "group": 3, "court": "B", "needs_review": false}, {"id": "小学5年男子-3-足立 海地", "player": "足立 海地", "division": "小学5年男子", "group": 3, "court": "B", "needs_review": false}, {"id": "小学5年男子-3-貞包 勇我", "player": "貞包 勇我", "division": "小学5年男子", "group": 3, "court": "B", "needs_review": false}, {"id": "小学5年男子-3-辻川 一護", "player": "辻川 一護", "division": "小学5年男子", "group": 3, "court": "B", "needs_review": false}, {"id": "小学6年男子-1-舟浴 豪志", "player": "舟浴 豪志", "division": "小学6年男子", "group": 1, "court": "B", "needs_review": true}, {"id": "小学6年男子-1-橋 寛人", "player": "橋 寛人", "division": "小学6年男子", "group": 1, "court": "B", "needs_review": true}, {"id": "小学6年男子-1-的場 晴乃助", "player": "的場 晴乃助", "division": "小学6年男子", "group": 1, "court": "B", "needs_review": true}, {"id": "小学6年男子-2-石黒 晴大", "player": "石黒 晴大", "division": "小学6年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学6年男子-2-岩元 武", "player": "岩元 武", "division": "小学6年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学6年男子-2-笠井 詠斗", "player": "笠井 詠斗", "division": "小学6年男子", "group": 2, "court": "B", "needs_review": false}, {"id": "小学6年男子-3-野崎 永慶", "player": "野崎 永慶", "division": "小学6年男子", "group": 3, "court": "B", "needs_review": true}, {"id": "小学6年男子-3-樽井 祐久", "player": "樽井 祐久", "division": "小学6年男子", "group": 3, "court": "B", "needs_review": true}, {"id": "小学6年男子-3-山崎 翔央", "player": "山崎 翔央", "division": "小学6年男子", "group": 3, "court": "B", "needs_review": true}, {"id": "小学6年男子-4-有森 葵唯", "player": "有森 葵唯", "division": "小学6年男子", "group": 4, "court": "B", "needs_review": true}, {"id": "小学6年男子-4-舟浴 颯志", "player": "舟浴 颯志", "division": "小学6年男子", "group": 4, "court": "B", "needs_review": true}, {"id": "小学6年男子-4-谷田 匠", "player": "谷田 匠", "division": "小学6年男子", "group": 4, "court": "B", "needs_review": true}, {"id": "小学6年男子-4-上村 弥臣", "player": "上村 弥臣", "division": "小学6年男子", "group": 4, "court": "B", "needs_review": true}, {"id": "小学5・6年女子-1-黒田 千晶", "player": "黒田 千晶", "division": "小学5・6年女子", "group": 1, "court": "D", "needs_review": false}, {"id": "小学5・6年女子-1-坂本 光望", "player": "坂本 光望", "division": "小学5・6年女子", "group": 1, "court": "D", "needs_review": false}, {"id": "小学5・6年女子-1-小山 小枝", "player": "小山 小枝", "division": "小学5・6年女子", "group": 1, "court": "D", "needs_review": false}, {"id": "小学5・6年女子-2-梶本 佳歩", "player": "梶本 佳歩", "division": "小学5・6年女子", "group": 2, "court": "D", "needs_review": false}, {"id": "小学5・6年女子-2-田頭 綾香", "player": "田頭 綾香", "division": "小学5・6年女子", "group": 2, "court": "D", "needs_review": false}, {"id": "小学5・6年女子-2-山本 里李苺杏菜", "player": "山本 里李苺杏菜", "division": "小学5・6年女子", "group": 2, "court": "D", "needs_review": false}, {"id": "中学1・2年女子-1-菱 優里奈", "player": "菱 優里奈", "division": "中学1・2年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "中学1・2年女子-1-小西 すみれ", "player": "小西 すみれ", "division": "中学1・2年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "中学1・2年女子-1-通阪 紗来", "player": "通阪 紗来", "division": "中学1・2年女子", "group": 1, "court": "A", "needs_review": false}, {"id": "中学1・2年女子-2-森 百々香", "player": "森 百々香", "division": "中学1・2年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "中学1・2年女子-2-松川 穂珠", "player": "松川 穂珠", "division": "中学1・2年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "中学1・2年女子-2-中江 夏子", "player": "中江 夏子", "division": "中学1・2年女子", "group": 2, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-1-笠井 ヤマト", "player": "笠井 ヤマト", "division": "中学1・2年男子", "group": 1, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-1-濱口 佐輔", "player": "濱口 佐輔", "division": "中学1・2年男子", "group": 1, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-1-野村 泰生", "player": "野村 泰生", "division": "中学1・2年男子", "group": 1, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-2-難波 一夢", "player": "難波 一夢", "division": "中学1・2年男子", "group": 2, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-2-佐納 聡斗", "player": "佐納 聡斗", "division": "中学1・2年男子", "group": 2, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-2-後山 旺輝", "player": "後山 旺輝", "division": "中学1・2年男子", "group": 2, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-3-五十嵐 粋", "player": "五十嵐 粋", "division": "中学1・2年男子", "group": 3, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-3-岩佐 雪椰", "player": "岩佐 雪椰", "division": "中学1・2年男子", "group": 3, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-3-森本 叶逢", "player": "森本 叶逢", "division": "中学1・2年男子", "group": 3, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-4-山脇 遥翔", "player": "山脇 遥翔", "division": "中学1・2年男子", "group": 4, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-4-高田 凌斗", "player": "高田 凌斗", "division": "中学1・2年男子", "group": 4, "court": "A", "needs_review": false}, {"id": "中学1・2年男子-4-李 龍輝", "player": "李 龍輝", "division": "中学1・2年男子", "group": 4, "court": "A", "needs_review": false}], "notes": ["First-pass manual extraction from image-based PDF.", "Some names may need final verification against the original print source.", "Adult section details in this PDF appear incomplete for full player-level extraction."]};
+const SCREENS = ['start','home','search','favorites','player','courts','divisions'];
+const STORAGE_KEY = 'koutokukai_favorites_players_v1';
+const screens = Object.fromEntries(SCREENS.map(id => [id, document.getElementById(id)]));
+const searchInput = document.getElementById('searchInput');
+const resultsEl = document.getElementById('results');
+const favoriteListEl = document.getElementById('favoriteList');
+const clearSearchBtn = document.getElementById('clearSearch');
+const courtGrid = document.getElementById('courtGrid');
+const divisionList = document.getElementById('divisionList');
+const playerTitle = document.getElementById('playerTitle');
+const playerSub = document.getElementById('playerSub');
+const playerEntries = document.getElementById('playerEntries');
+const playerBackBtn = document.getElementById('playerBackBtn');
+let playerBackTarget = 'search';
+let currentPlayerName = '';
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[ch]));
+}
+function escapeAttr(value) {
+  return escapeHtml(value);
+}
+function getPlayerEntriesByName(name) {
+  return DATA.players.filter(item => item.player === name);
+}
+function openPlayer(name, backTarget='search') {
+  currentPlayerName = name;
+  playerBackTarget = backTarget;
+  renderPlayerDetail(name);
+  history.replaceState(null, '', '#player');
+  showScreen('player');
+}
+function renderPlayerDetail(name) {
+  const entries = getPlayerEntriesByName(name);
+  if (!entries.length) {
+    playerTitle.textContent = '選手詳細';
+    playerSub.textContent = '該当するエントリーが見つかりませんでした。';
+    playerEntries.innerHTML = '<div class="panel empty">この選手のエントリー情報が見つかりませんでした。</div>';
+    return;
+  }
+  playerTitle.textContent = name;
+  playerSub.textContent = entries.length === 1 ? 'この選手がエントリーしている部門です。' : `この選手は${entries.length}件の部門にエントリーしています。`;
+  playerEntries.innerHTML = entries.map(item => `
+    <div class="item">
+      <h3 class="item-title">${escapeHtml(item.division)}</h3>
+      <div class="meta">組：${escapeHtml(item.group)}組<br>コート：${escapeHtml(item.court)}コート</div>
+      <div class="tag-row">
+        <div class="tag">${escapeHtml(item.division)}</div>
+        <div class="tag">${escapeHtml(item.court)}コート</div>
+        <div class="tag">${escapeHtml(item.group)}組</div>
+        ${item.needs_review ? '<div class="tag warn">要確認</div>' : ''}
       </div>
-    </section>
-
-    <section id="screen-summary" class="screen">
-      <div class="topbar">
-        <span class="back-link" onclick="showScreen('screen-list')">← 一覧へ戻る</span>
+    </div>`).join('');
+}
+function getFavorites() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
+}
+function setFavorites(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+function isFavorite(id) {
+  return getFavorites().includes(id);
+}
+function toggleFavorite(id) {
+  const current = getFavorites();
+  const next = current.includes(id) ? current.filter(x => x !== id) : [...current, id];
+  setFavorites(next);
+  renderResults(searchInput.value || '');
+  renderFavorites();
+}
+function showScreen(id) {
+  let screenId = SCREENS.includes(id) ? id : 'start';
+  if (screenId === 'player' && !currentPlayerName) screenId = 'home';
+  SCREENS.forEach(key => screens[key].classList.toggle('active', key === screenId));
+  if (screenId === 'search') renderResults(searchInput.value || '');
+  if (screenId === 'favorites') renderFavorites();
+  if (screenId === 'courts') renderCourts();
+  if (screenId === 'divisions') renderDivisions();
+  window.scrollTo({top:0,behavior:'auto'});
+}
+function cardTemplate(item, backTarget='search', withSearchLink=false) {
+  const saved = isFavorite(item.id);
+  return `
+    <div class="item">
+      <button class="player-open" type="button" data-player-name="${escapeAttr(item.player)}" data-back-target="${escapeAttr(backTarget)}">
+        <h3 class="item-title">${escapeHtml(item.player)}</h3>
+        <div class="meta">部門：${escapeHtml(item.division)}<br>組：${escapeHtml(item.group)}組<br>コート：${escapeHtml(item.court)}コート</div>
+        <div class="tag-row">
+          <div class="tag">${escapeHtml(item.division)}</div>
+          <div class="tag">${escapeHtml(item.court)}コート</div>
+          <div class="tag">${escapeHtml(item.group)}組</div>
+          ${item.needs_review ? '<div class="tag warn">要確認</div>' : ''}
+        </div>
+      </button>
+      <div class="actions">
+        <button class="fav-btn ${saved ? 'saved' : ''}" type="button" data-fav-id="${escapeAttr(item.id)}">
+          ${saved ? '★ お気に入り済み' : '☆ お気に入り追加'}
+        </button>
+        ${withSearchLink ? '<button class="btn ghost" type="button" data-player-name="' + escapeAttr(item.player) + '" data-back-target="favorites">部門を見る</button>' : ''}
       </div>
-
-      <div class="summary-wrap">
-        <div class="total-box">
-          <div class="total-card">
-            <div class="total-label">合計点数</div>
-            <div id="summaryCount" class="total-value">0</div>
-          </div>
-          <div class="total-card">
-            <div class="total-label">合計金額</div>
-            <div id="summaryAmount" class="total-value">¥0</div>
-          </div>
+    </div>`;
+}
+function renderResults(keyword) {
+  const q = (keyword || '').trim().toLowerCase();
+  const list = !q ? DATA.players : DATA.players.filter(item =>
+    [item.player, item.division, item.court + 'コート', item.group + '組'].join(' ').toLowerCase().includes(q)
+  );
+  if (!list.length) {
+    resultsEl.innerHTML = '<div class="panel empty">該当する選手が見つかりませんでした。</div>';
+    bindDynamic();
+    return;
+  }
+  resultsEl.innerHTML = list.map(item => cardTemplate(item,'search',false)).join('');
+  bindDynamic();
+}
+function renderFavorites() {
+  const favIds = getFavorites();
+  const list = DATA.players.filter(item => favIds.includes(item.id));
+  if (!list.length) {
+    favoriteListEl.innerHTML = '<div class="panel empty">まだお気に入りがありません。選手検索から追加してください。</div>';
+    bindDynamic();
+    return;
+  }
+  favoriteListEl.innerHTML = list.map(item => cardTemplate(item,'favorites',true)).join('');
+  bindDynamic();
+}
+function renderCourts() {
+  courtGrid.innerHTML = Object.entries(DATA.courtMap).map(([court, info]) => `
+    <div class="court-card">
+      <div class="court-name">${court}コート</div>
+      <div class="section-label">午前の部</div>
+      <ul class="clean">${info.morning.map(x => `<li>${x}</li>`).join('')}</ul>
+      <div class="section-label">午後の部</div>
+      <ul class="clean">${info.afternoon.map(x => `<li>${x}</li>`).join('')}</ul>
+    </div>`).join('');
+}
+function renderDivisions() {
+  const grouped = {};
+  DATA.players.forEach(p => {
+    if (!grouped[p.division]) grouped[p.division] = {};
+    if (!grouped[p.division][p.group]) grouped[p.division][p.group] = [];
+    grouped[p.division][p.group].push(p);
+  });
+  divisionList.innerHTML = Object.entries(grouped).map(([division, groups]) => {
+    const court = Object.values(groups)[0][0].court;
+    const total = Object.values(groups).reduce((n, arr) => n + arr.length, 0);
+    const detail = Object.entries(groups).map(([group, arr]) => `
+      <div class="group-line"><strong>${escapeHtml(group)}組：</strong> ${arr.map(x => `<button class="inline-player" type="button" data-player-name="${escapeAttr(x.player)}" data-back-target="divisions">${escapeHtml(x.player)}</button>`).join(' / ')}</div>
+    `).join('');
+    const needsReview = Object.values(groups).flat().some(x => x.needs_review);
+    return `
+      <div class="item">
+        <h3 class="item-title">${escapeHtml(division)}</h3>
+        <div class="meta">コート：${escapeHtml(court)}コート / 総人数：${total}人</div>
+        <div class="tag-row">
+          <div class="tag">${Object.keys(groups).length}組</div>
+          <div class="tag">${escapeHtml(court)}コート</div>
+          ${needsReview ? '<div class="tag warn">一部要確認</div>' : ''}
         </div>
-
-        <div id="summaryList"></div>
-
-        <div class="actions" style="margin-top:16px;">
-          <button class="btn btn-main" onclick="showScreen('screen-list')">一覧へ戻る</button>
-          <button class="btn btn-danger" onclick="resetAll()">最初から</button>
-        </div>
-
-        <div class="small">
-          この画面をそのままスクリーンショットしてください。<br>
-          品名・単価・画像はコード内の <strong>ITEMS</strong> を書き換えれば変更できます。
-        </div>
-      </div>
-    </section>
-
-  </div>
-
-  <script>
-    // 明倫の価格表PDFをもとに反映
-    const ITEMS = [
-      { name: "拳法面(白紐付)7mm 小〜大", price: 36000, image: "", qty: 0 },
-      { name: "拳法面(白紐付)7mm 特大", price: 40000, image: "", qty: 0 },
-      { name: "拳法面(白紐付)8mm 小〜大", price: 39500, image: "", qty: 0 },
-      { name: "拳法面(白紐付)8mm 特大", price: 44000, image: "", qty: 0 },
-      { name: "黒帆布拳法面(紺紐付)8mm 小〜大", price: 43900, image: "", qty: 0 },
-      { name: "黒帆布拳法面(紺紐付)8mm 特大", price: 48400, image: "", qty: 0 },
-      { name: "ベッチン拳法面(紺紐付)8mm 小〜大", price: 52000, image: "", qty: 0 },
-      { name: "ベッチン拳法面(紺紐付)8mm 特大", price: 56500, image: "", qty: 0 },
-
-      { name: "拳法胴(白紐付)大人用", price: 29930, image: "", qty: 0 },
-      { name: "拳法胴(白紐付)少年用", price: 27180, image: "", qty: 0 },
-      { name: "一体胴(白紐付)大人用", price: 36570, image: "", qty: 0 },
-      { name: "一体胴(白紐付)少年用", price: 36570, image: "", qty: 0 },
-      { name: "別製胴フトン(白紐付)大人用・少年用", price: 10720, image: "", qty: 0 },
-      { name: "並製胴フトン(白紐付)大人用のみ", price: 8240, image: "", qty: 0 },
-      { name: "股当一般用(白紐付・男性用)", price: 8240, image: "", qty: 0 },
-      { name: "股当一般用(白紐付・女性用)", price: 8240, image: "", qty: 0 },
-
-      { name: "8オンスマジックテープ式グローブ 黒(大人用)", price: 39800, image: "", qty: 0 },
-      { name: "8オンスマジックテープ式グローブ 赤(大人用)", price: 39800, image: "", qty: 0 },
-      { name: "8オンス紐式グローブ 黒(大人用)", price: 39800, image: "", qty: 0 },
-      { name: "8オンス紐式グローブ 赤(大人用)", price: 39800, image: "", qty: 0 },
-      { name: "6オンスマジックテープ式グローブ 黒(少年用)", price: 38800, image: "", qty: 0 },
-      { name: "6オンスマジックテープ式グローブ 赤(少年用)", price: 38800, image: "", qty: 0 },
-      { name: "6オンス紐式グローブ 黒(少年用)", price: 38800, image: "", qty: 0 },
-      { name: "6オンス紐式グローブ 赤(少年用)", price: 38800, image: "", qty: 0 },
-
-      { name: "拳サポーター(親指ガード有) 1組", price: 2530, image: "", qty: 0 },
-      { name: "拳サポーター(親指ガードなし) 1組", price: 1760, image: "", qty: 0 },
-      { name: "グローブラップ", price: 2860, image: "", qty: 0 },
-      { name: "トータルレッグガード(スネ用) 1組", price: 3630, image: "", qty: 0 },
-
-      { name: "日本拳法衣セット 0号", price: 13330, image: "", qty: 0 },
-      { name: "日本拳法衣セット 1号", price: 14110, image: "", qty: 0 },
-      { name: "日本拳法衣セット 2号", price: 14950, image: "", qty: 0 },
-      { name: "日本拳法衣セット 3号", price: 17790, image: "", qty: 0 },
-      { name: "日本拳法衣セット 4号", price: 18650, image: "", qty: 0 },
-      { name: "日本拳法衣セット 5号", price: 20800, image: "", qty: 0 },
-      { name: "日本拳法衣セット 6号", price: 22890, image: "", qty: 0 },
-
-      { name: "日本拳法衣 上衣 0号", price: 8240, image: "", qty: 0 },
-      { name: "日本拳法衣 上衣 1号", price: 8510, image: "", qty: 0 },
-      { name: "日本拳法衣 上衣 2号", price: 8980, image: "", qty: 0 },
-      { name: "日本拳法衣 上衣 3号", price: 11030, image: "", qty: 0 },
-      { name: "日本拳法衣 上衣 4号", price: 11520, image: "", qty: 0 },
-      { name: "日本拳法衣 上衣 5号", price: 13170, image: "", qty: 0 },
-      { name: "日本拳法衣 上衣 6号", price: 14260, image: "", qty: 0 },
-
-      { name: "日本拳法衣 ズボン 0号", price: 3890, image: "", qty: 0 },
-      { name: "日本拳法衣 ズボン 1号", price: 4300, image: "", qty: 0 },
-      { name: "日本拳法衣 ズボン 2号", price: 4570, image: "", qty: 0 },
-      { name: "日本拳法衣 ズボン 3号", price: 5260, image: "", qty: 0 },
-      { name: "日本拳法衣 ズボン 4号", price: 5530, image: "", qty: 0 },
-      { name: "日本拳法衣 ズボン 5号", price: 5930, image: "", qty: 0 },
-      { name: "日本拳法衣 ズボン 6号", price: 6830, image: "", qty: 0 },
-
-      { name: "日本拳法衣 帯 0号", price: 1200, image: "", qty: 0 },
-      { name: "日本拳法衣 帯 1号", price: 1300, image: "", qty: 0 },
-      { name: "日本拳法衣 帯 2号", price: 1400, image: "", qty: 0 },
-      { name: "日本拳法衣 帯 3号", price: 1500, image: "", qty: 0 },
-      { name: "日本拳法衣 帯 4号", price: 1600, image: "", qty: 0 },
-      { name: "日本拳法衣 帯 5号", price: 1700, image: "", qty: 0 },
-      { name: "日本拳法衣 帯 6号", price: 1800, image: "", qty: 0 },
-
-      { name: "左胸日本拳法連盟マーク追加", price: 1900, image: "", qty: 0 },
-      { name: "日本拳法面用シールド", price: 1190, image: "", qty: 0 },
-      { name: "ミニチュア拳法衣", price: 3300, image: "", qty: 0 },
-      { name: "拳法バッグ(黒)", price: 11000, image: "", qty: 0 },
-      { name: "拳法バッグ(黒・マーク無し)", price: 8800, image: "", qty: 0 },
-      { name: "ゲルガード(2ヶ1組)", price: 2530, image: "", qty: 0 },
-      { name: "バンテージVL-H(2ヶ1組)", price: 2750, image: "", qty: 0 },
-      { name: "バンテージVL-C(2ヶ1組)", price: 2310, image: "", qty: 0 },
-      { name: "ジョイントマット(15mm厚)", price: 3300, image: "", qty: 0 },
-      { name: "リバーシブルジョイントマット(20mm厚)", price: 4500, image: "", qty: 0 },
-      { name: "武道シューズ", price: 9200, image: "", qty: 0 }
-    ];
-
-    let currentIndex = 0;
-    let currentQty = 0;
-
-    function createPlaceholder(label){
-      const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600">
-          <defs>
-            <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stop-color="#ffd9bf"/>
-              <stop offset="100%" stop-color="#ffb37d"/>
-            </linearGradient>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#g)"/>
-          <circle cx="300" cy="220" r="90" fill="rgba(255,255,255,.45)"/>
-          <rect x="140" y="350" width="320" height="70" rx="18" fill="rgba(255,255,255,.55)"/>
-          <text x="300" y="530" text-anchor="middle" font-size="42" font-family="Arial, sans-serif" fill="#7a3d13" font-weight="700">${label}</text>
-        </svg>
-      `;
-      return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
-    }
-
-    function yen(num){
-      return "¥" + Number(num).toLocaleString("ja-JP");
-    }
-
-    function totalCount(){
-      return ITEMS.reduce((sum, item) => sum + item.qty, 0);
-    }
-
-    function totalAmount(){
-      return ITEMS.reduce((sum, item) => sum + item.qty * item.price, 0);
-    }
-
-    function updatePill(){
-      document.getElementById("pillCount").textContent = `合計 ${totalCount()} 点`;
-      document.getElementById("pillAmount").textContent = yen(totalAmount());
-    }
-
-    function renderGrid(){
-      const grid = document.getElementById("itemGrid");
-      grid.innerHTML = "";
-
-      ITEMS.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card";
-
-        const imgSrc = item.image && item.image.trim() !== "" ? item.image : createPlaceholder(item.name);
-
-        card.innerHTML = `
-          <button onclick="openDetail(${index})">
-            <img class="thumb" src="${imgSrc}" alt="${item.name}">
-            ${item.qty > 0 ? `<div class="qty-badge">${item.qty}</div>` : ""}
-            <div class="card-body">
-              <div class="name">${item.name}</div>
-              <p class="price">単価 ${yen(item.price)}</p>
-            </div>
-          </button>
-        `;
-        grid.appendChild(card);
-      });
-
-      updatePill();
-    }
-
-    function showScreen(id){
-      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-      document.getElementById(id).classList.add("active");
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function openDetail(index){
-      currentIndex = index;
-      currentQty = ITEMS[index].qty;
-
-      const item = ITEMS[index];
-      const imgSrc = item.image && item.image.trim() !== "" ? item.image : createPlaceholder(item.name);
-
-      document.getElementById("detailImage").src = imgSrc;
-      document.getElementById("detailImage").alt = item.name;
-      document.getElementById("detailName").textContent = item.name;
-      document.getElementById("detailPrice").textContent = `単価 ${yen(item.price)}`;
-      document.getElementById("qtyValue").textContent = currentQty;
-
-      showScreen("screen-detail");
-    }
-
-    function changeQty(diff){
-      currentQty += diff;
-      if(currentQty < 0) currentQty = 0;
-      document.getElementById("qtyValue").textContent = currentQty;
-    }
-
-    function saveCurrentQty(){
-      ITEMS[currentIndex].qty = currentQty;
-      renderGrid();
-    }
-
-    function saveAndBack(){
-      saveCurrentQty();
-      showScreen("screen-list");
-    }
-
-    function saveAndSummary(){
-      saveCurrentQty();
-      openSummary();
-    }
-
-    function openSummary(){
-      renderSummary();
-      showScreen("screen-summary");
-    }
-
-    function renderSummary(){
-      const wrap = document.getElementById("summaryList");
-      const selected = ITEMS.filter(item => item.qty > 0);
-
-      document.getElementById("summaryCount").textContent = totalCount();
-      document.getElementById("summaryAmount").textContent = yen(totalAmount());
-
-      if(selected.length === 0){
-        wrap.innerHTML = `<div class="empty">まだ何も選ばれていません</div>`;
-        return;
-      }
-
-      const list = document.createElement("div");
-      list.className = "list";
-
-      selected.forEach(item => {
-        const row = document.createElement("div");
-        row.className = "row";
-        row.innerHTML = `
-          <div>
-            <div class="row-name">${item.name}</div>
-            <div class="row-sub">${yen(item.price)} × ${item.qty} 点</div>
-          </div>
-          <div class="row-right">${yen(item.price * item.qty)}</div>
-        `;
-        list.appendChild(row);
-      });
-
-      wrap.innerHTML = "";
-      wrap.appendChild(list);
-    }
-
-    function resetAll(){
-      const ok = confirm("数量をすべて0に戻しますか？");
-      if(!ok) return;
-
-      ITEMS.forEach(item => item.qty = 0);
-      renderGrid();
-      renderSummary();
-      showScreen("screen-list");
-    }
-
-    renderGrid();
-  </script>
+        ${detail}
+      </div>`;
+  }).join('');
+}
+function bindDynamic() {
+  document.querySelectorAll('[data-fav-id]').forEach(btn => {
+    btn.onclick = function(event) {
+      event.stopPropagation();
+      toggleFavorite(this.getAttribute('data-fav-id'));
+    };
+  });
+  document.querySelectorAll('[data-screen-link]').forEach(link => {
+    link.onclick = function() {
+      const target = this.getAttribute('data-screen-link');
+      history.replaceState(null, '', '#' + target);
+      showScreen(target);
+    };
+  });
+  document.querySelectorAll('[data-player-name]').forEach(btn => {
+    btn.onclick = function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      openPlayer(this.getAttribute('data-player-name'), this.getAttribute('data-back-target') || 'search');
+    };
+  });
+}
+window.addEventListener('hashchange', function() {
+  showScreen((location.hash || '#start').replace('#',''));
+});
+document.querySelectorAll('[data-quick]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const value = this.getAttribute('data-quick') || '';
+    searchInput.value = value;
+    renderResults(value);
+  });
+});
+playerBackBtn.addEventListener('click', function() {
+  history.replaceState(null, '', '#' + playerBackTarget);
+  showScreen(playerBackTarget);
+});
+searchInput.addEventListener('input', function() { renderResults(this.value); });
+clearSearchBtn.addEventListener('click', function() { searchInput.value = ''; renderResults(''); });
+renderResults('');
+renderFavorites();
+renderCourts();
+renderDivisions();
+showScreen((location.hash || '#start').replace('#',''));
+bindDynamic();
+</script>
 </body>
 </html>
