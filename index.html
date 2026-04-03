@@ -2,6 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>備品計算アプリ</title>
   <style>
@@ -153,8 +157,14 @@
       margin-top:12px;
       background:#fff;
       border-radius:24px;
-      padding:2px;
+      padding:12px;
       box-shadow:var(--shadow);
+    }
+    .detail-image-wrap{
+      overflow:hidden;
+      border-radius:20px;
+      background:#fff;
+      margin-bottom:14px;
     }
     .back-link{
       display:inline-block;
@@ -166,15 +176,14 @@
       cursor:pointer;
     }
     .detail-image{
-      transform:scale(1.06);
       width:100%;
       aspect-ratio:1/1;
       object-fit:contain;
-      border-radius:20px;
+      object-position:center;
       background:#ffffff;
       display:block;
       padding:0;
-      transform:scale(1.12);
+      transform:scale(1.08);
       transform-origin:center;
     }
     .detail-title{
@@ -358,7 +367,9 @@
       </div>
 
       <div class="detail-wrap">
-        <img id="detailImage" class="detail-image" src="" alt="">
+        <div class="detail-image-wrap">
+          <img id="detailImage" class="detail-image" src="" alt="">
+        </div>
         <div id="detailName" class="detail-title"></div>
         <div id="detailPrice" class="detail-price"></div>
 
